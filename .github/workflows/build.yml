@@ -1,0 +1,35 @@
+name: Build GSI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Set up environment
+        run: |
+          sudo apt update
+          sudo apt install -y bc bison build-essential curl flex git gnupg gperf libncurses5-dev libssl-dev \
+              libxml2-utils python3 python3-pip rsync unzip zip zlib1g-dev openjdk-11-jdk
+
+      - name: Clone TrebleDroid GSI manifest
+        run: |
+          mkdir lineage
+          cd lineage
+          git clone https://github.com/AndyCGYan/lineage_build_unified . -b lineage-18.1
+
+      - name: Start build
+        run: |
+          cd lineage
+          chmod +x build_unified.sh
+          ./build_unified.sh -b 32Binder64 -g # -g for GApps included
+
+      - name: Upload image
+        uses: actions/upload-artifact@v3
+        with:
+          name: GSI-Build
+          path: lineage/output/*.img.xz
